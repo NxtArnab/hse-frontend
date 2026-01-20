@@ -1,49 +1,89 @@
-import { create } from 'zustand';
+import { create } from "zustand";
+import {
+  getCurrentUser,
+  login as loginAPI,
+  logout as logoutAPI,
+} from "@/services/auth.services";
 
 const useAuthStore = create((set) => ({
-    user: null,
-    isAuthenticated: false,
-    loading: true,
+  user: null,
+  isAuthenticated: false,
+  loading: true,
 
-    verify: async () => {
+  verify: async () => {
+    set({ loading: true });
 
-        set({ loading: true })
+    try {
+      const response = await getCurrentUser();
+      const user = response?.data;
 
-        // mock api call for verifying already loggedin user
-        await new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(true)
-            }, 800)
-        })
+      if (!user) {
+        throw new Error("User not found");
+      }
 
-        set({ loading: false, user: { name: 'Ashish' }, isAuthenticated: true })
-    },
+      set({
+        user,
+        isAuthenticated: true,
+        loading: false,
+      });
+    } catch {
+      set({
+        user: null,
+        isAuthenticated: false,
+        loading: false,
+      });
+    }
+  },
 
-    login: async (userData) => {
-        set({ loading: true })
+  login: async (userData = {}) => {
+    try {
+      // Call login API with correct object structure
+      await loginAPI({ email: userData.email, password: userData.password });
 
-        // mock api call for login
-        await new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(true)
-            }, 3000)
-        })
+      // Fetch current user after successful login
+      const response = await getCurrentUser();
+      const user = response?.data;
 
-        set({ loading: false, user: { name: 'Ashish' }, isAuthenticated: true })
-    },
+      if (!user) {
+        throw new Error("User not found");
+      }
 
-    logout: async () => {
-        set({ loading: true })
+      set({
+        user,
+        isAuthenticated: true,
+        loading: false,
+      });
+    } catch (error) {
+      set({
+        user: null,
+        isAuthenticated: false,
+        loading: false,
+      });
+      // Re-throw error so the component can handle it
+      throw error;
+    }
+  },
 
-        // mock api call for logout
-        await new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(true)
-            }, 3000)
-        })
+  logout: async () => {
+    set({ loading: true });
 
-        set({ loading: false, user: null, isAuthenticated: false })
-    },
+    try {
+      await logoutAPI();
+
+      set({
+        user: null,
+        isAuthenticated: false,
+        loading: false,
+      });
+    } catch (error) {
+      set({
+        user: null,
+        isAuthenticated: false,
+        loading: false,
+      });
+      throw error;
+    }
+  },
 }));
 
 export default useAuthStore;
