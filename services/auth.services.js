@@ -11,6 +11,10 @@ export function logout() {
   return api.post("/auth/logout");
 }
 
+export function signup(userData) {
+  return api.post("/user/create-user", userData);
+}
+
 export function getCurrentUser() {
   return api.get("/auth/get-current-user");
 }

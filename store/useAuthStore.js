@@ -3,6 +3,7 @@ import {
   getCurrentUser,
   login as loginAPI,
   logout as logoutAPI,
+  signup as signupAPI,
 } from "@/services/auth.services";
 
 const useAuthStore = create((set) => ({
@@ -60,6 +61,17 @@ const useAuthStore = create((set) => ({
         loading: false,
       });
       // Re-throw error so the component can handle it
+      throw error;
+    }
+  },
+  signup: async (userData) => {
+    set({ loading: true });
+    try {
+      await signupAPI(userData);
+      // Automatically login after signup if needed, or just return
+      set({ loading: false });
+    } catch (error) {
+      set({ loading: false });
       throw error;
     }
   },
